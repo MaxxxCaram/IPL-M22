@@ -27,13 +27,12 @@ const getParameters = async (diagnosis, context = []) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Using gemini-1.5-flash with a timeout safety
-    // We'll reduce the prompt length to ensure faster response
+    // Using gemini-1.5-flash-latest (This is the most stable identifier)
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
+        model: "gemini-1.5-flash-latest",
         generationConfig: {
-            maxOutputTokens: 250, // Keep it short for speed
-            temperature: 0.1,    // More deterministic
+            maxOutputTokens: 250,
+            temperature: 0.1,
         }
     });
 
@@ -48,8 +47,7 @@ const getParameters = async (diagnosis, context = []) => {
         return result.response.text();
     } catch (error) {
         console.error("Error with Gemini API:", error.message);
-        // Fallback message if AI fails to respond in time
-        throw new Error(`Error de IA (posible saturación): ${error.message}`);
+        throw new Error(`Error de IA: ${error.message}`);
     }
 };
 
