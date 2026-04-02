@@ -46,21 +46,18 @@ const getParameters = async (diagnosis, context = []) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Using Gemini 2.5 Flash (Most stable and available in this account)
+    // Using Gemini 2.5 PRO for maximum intelligence and strict formatting
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.5-pro",
         generationConfig: {
-            maxOutputTokens: 500,
+            maxOutputTokens: 1000,
             temperature: 0.1,
         }
     });
 
     try {
-        const historicalContext = context.length > 0
-            ? "Contexto reciente:\n" + context.slice(-2).map(c => `${c.diagnosis} -> ${c.outcome}`).join("\n")
-            : "";
-
-        const prompt = `${M22_SYSTEM_PROMPT}\n\n${historicalContext}\nDiagnóstico: ${diagnosis}`;
+        // Disabling historical context for now to avoid bad-imitation habits
+        const prompt = `${M22_SYSTEM_PROMPT}\n\nDiagnóstico: ${diagnosis}`;
 
         const result = await model.generateContent(prompt);
         return result.response.text();
