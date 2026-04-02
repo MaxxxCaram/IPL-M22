@@ -25,8 +25,17 @@ const { saveTreatment, updateOutcome, getRecentSuccessfulTreatments } = require(
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+
+// Vercel pre-parses the body. If it's already an object, use it directly.
+app.use((req, res, next) => {
+    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+        return next();
+    }
+    next();
+});
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Log helper for debugging
 app.use((req, res, next) => {
@@ -94,11 +103,12 @@ const whatsappHandler = async (req, res) => {
     res.status(200).send('OK');
 };
 
-// Register routes
+// Register routes to handle Vercel rewrite issues
 app.post('/', whatsappHandler);
 app.post('/api/whatsapp', whatsappHandler);
 app.post('/webhook/whatsapp', whatsappHandler);
 app.post('/api/webhook/whatsapp', whatsappHandler);
+app.post('*', whatsappHandler); // Catch-all for Vercel rewrites
 
 app.get('/api/treatments', async (req, res) => {
     try {

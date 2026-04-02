@@ -27,11 +27,11 @@ const getParameters = async (diagnosis, context = []) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Using gemini-pro (the most universally supported baseline identifier)
+    // Using gemini-1.5-flash for better speed, reliability and availability
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-pro",
+        model: "gemini-1.5-flash",
         generationConfig: {
-            maxOutputTokens: 250,
+            maxOutputTokens: 500,
             temperature: 0.1,
         }
     });

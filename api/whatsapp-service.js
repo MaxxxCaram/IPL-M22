@@ -11,8 +11,12 @@ const sendWhatsAppMessage = async (to, body) => {
     const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
     try {
+        const fromNumber = process.env.TWILIO_PHONE_NUMBER.startsWith('whatsapp:') 
+            ? process.env.TWILIO_PHONE_NUMBER 
+            : `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`;
+
         await client.messages.create({
-            from: `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`,
+            from: fromNumber,
             to: `whatsapp:${to}`,
             body: body
         });
