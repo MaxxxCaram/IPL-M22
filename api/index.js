@@ -24,14 +24,7 @@ if (missingEnv.length > 0) {
     console.error("[Boot] Critical: Missing Env Vars:", missingEnv.join(", "));
 }
 
-const getAIKeyHint = () => {
-    const key = (process.env.GEMINI_API_KEY || "").trim();
-    if (!key) return "NOT_SET";
-    if (key.length < 10) return "TOO_SHORT";
-    return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
-};
-
-const { getParameters, listModels } = require('./ai-service');
+const { getParameters } = require('./ai-service');
 const { sendWhatsAppMessage } = require('./whatsapp-service');
 const { saveTreatment, updateOutcome, getRecentSuccessfulTreatments } = require('./database');
 
@@ -131,14 +124,6 @@ app.get('/api/treatments', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-app.get('/api/models', async (req, res) => {
-    try {
-        const models = await listModels();
-        res.json(models);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 // Simple health check as default route
 app.get('*', (req, res) => {
@@ -147,15 +132,11 @@ app.get('*', (req, res) => {
             <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 50px; background: #f4f7f6; color: #333;">
                 <div style="background: white; max-width: 500px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <h1 style="color: #2c3e50; margin-bottom: 5px;">M22 Assistant ✅</h1>
-                    <p style="color: #27ae60; font-weight: bold; margin-bottom: 25px;">Engine: ONLINE | Model: Gemini-1.5-Flash</p>
+                    <p style="color: #27ae60; font-weight: bold; margin-bottom: 25px;">Engine: ONLINE | Status: Ready</p>
                     
                     <div style="background: #fdfdfd; padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 20px;">
-                        <p style="margin: 5px 0;"><strong>Twilio:</strong> ${process.env.TWILIO_PHONE_NUMBER ? "🟢 Connected" : "🔴 Missing"}</p>
-                        <p style="margin: 5px 0;"><strong>Gemini IA:</strong> ${process.env.GEMINI_API_KEY ? "🟢 Connected" : "🔴 Missing"}</p>
-                        <p style="margin: 5px 0; font-size: 10px; color: #888;">Key Hint: <code>${getAIKeyHint()}</code></p>
+                        <p style="margin: 5px 0; color: #27ae60;">🟢 WhatsApp Service Active</p>
                     </div>
-                    
-                    <p style="color: #7f8c8d; font-size: 11px;">Deployment ID: ${new Date().toLocaleTimeString()} (UTC)</p>
                 </div>
             </body>
         </html>
