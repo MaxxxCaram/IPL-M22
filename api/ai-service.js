@@ -46,9 +46,9 @@ const getParameters = async (diagnosis, context = []) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Using Gemini 2.0 Flash for superior instruction following
+    // Using Gemini 2.5 Flash (Most stable and available in this account)
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         generationConfig: {
             maxOutputTokens: 500,
             temperature: 0.1,
