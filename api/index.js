@@ -57,10 +57,10 @@ app.get(['/', '/api/health', '/api/whatsapp', '/webhook/whatsapp'], (req, res) =
 const whatsappHandler = async (req, res) => {
     console.log("--- WEBHOOK HIT (POST) ---");
     console.log("Body Received:", JSON.stringify(req.body));
-    
+
     const { From, Body } = req.body;
     const body = Body ? Body.toLowerCase() : "";
-    
+
     if (!From || !body) {
         console.warn("Empty From or Body in request");
         return res.status(200).send('OK');
@@ -81,10 +81,10 @@ const whatsappHandler = async (req, res) => {
         } else {
             console.log(`Analyzing: ${body}`);
             const context = await getRecentSuccessfulTreatments();
-            
+
             // We AWAIT here to ensure Gemini finishes BEFORE Vercel suspends the function
             const response = await getParameters(body, context);
-            
+
             console.log("Saving treatment diagnosis...");
             const treatmentId = await saveTreatment({
                 whatsapp_number: From,
