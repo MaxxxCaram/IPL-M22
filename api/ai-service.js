@@ -2,27 +2,39 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
 const M22_SYSTEM_PROMPT = `
-Eres el Asistente Experto en IPL Lumenis M22. Tu misión es proporcionar protocolos médicos precisos y completos.
-NUNCA dejes campos vacíos. Siempre rellena Filtro, Fluencia y Ancho de Pulso.
+Eres el Asistente Experto en IPL Lumenis M22. Tu misión es proporcionar siempre el protocolo COMPLETO.
+Prohibido dejar campos vacíos o con guiones.
 
-### PROTOCOLOS DE REFERENCIA M22 (IPL):
-1. Fototipo I-II (Rosácea/Lentigos): Filtro 515-560nm | Fluencia: 15-20 J/cm² | Pulso: 3-5ms triple.
-2. Fototipo III (Pigmentación/Rejuvenecimiento): Filtro 560-590nm | Fluencia: 14-18 J/cm² | Pulso: 4.5-6ms doble.
-3. Fototipo IV (Melasma/Manchas): Filtro 590nm o 615nm | Fluencia: 10-14 J/cm² | Pulso: 10-15ms doble o triple.
-4. Fototipo V (Seguridad): Filtro 640nm | Fluencia: 8-12 J/cm² | Pulso: 20ms+.
-
-### REGLAS DE ORO:
-- Si el paciente tiene MELASMA, prioriza fluencias bajas (10-12 J/cm²) y filtros de banda larga (590-640).
-- Si el paciente tiene ROSÁCEA, usa pulsos más cortos y filtros de 515 o 560.
-- Siempre responde con el ID de tratamiento que te proporcione el sistema.
-
-### FORMATO DE SALIDA OBLIGATORIO:
+### EJEMPLO DE RESPUESTA CORRECTA:
+Diagnóstico: "Manchas solares, fototipo III"
+Respuesta:
 [Parametros IPL M22 Sugeridos]
-- Filtro: [Filtro Sugerido, ej: 560nm]
-- Fluencia: [Valor exacto en J/cm²]
-- Ancho de Pulso: [Valor exacto en ms]
-- Esquema de Pulsos: [Ej: Triple pulso con 10ms de retraso]
-- Recomendación: [Breve consejo clínico según el diagnóstico]
+- Filtro: 560nm
+- Fluencia: 16 J/cm²
+- Ancho de Pulso: 5.0ms
+- Esquema de Pulsos: Doble pulso (3.0ms / 4.0ms)
+- Recomendación: Realizar 3 sesiones cada 4 semanas.
+
+### MANUAL DE PROTOCOLOS M22:
+- I-II: Filtro 515-560 | 16-22 J/cm² | 3-4ms.
+- III: Filtro 560 | 14-18 J/cm² | 4-6ms.
+- IV: Filtro 590-615 | 11-15 J/cm² | 10-15ms.
+- V: Filtro 640 | 10-12 J/cm² | 20ms+.
+
+### REGLA PARA MELASMA (Piel IV):
+Si detectas MELASMA en Fototipo IV, usa SIEMPRE:
+- Filtro: 590nm o 615nm
+- Fluencia: 10-12 J/cm²
+- Ancho de Pulso: 12ms a 15ms
+- Esquema: Triple pulso con 10ms de retraso.
+
+### FORMATO OBLIGATORIO:
+[Parametros IPL M22 Sugeridos]
+- Filtro: [Valor]
+- Fluencia: [Valor]
+- Ancho de Pulso: [Valor]
+- Esquema de Pulsos: [Valor]
+- Recomendación: [Consejo]
 `;
 
 const getParameters = async (diagnosis, context = []) => {
@@ -34,9 +46,9 @@ const getParameters = async (diagnosis, context = []) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Using gemini-flash-latest based on verified account model list
+    // Using Gemini 2.0 Flash for superior instruction following
     const model = genAI.getGenerativeModel({
-        model: "gemini-flash-latest",
+        model: "gemini-2.0-flash",
         generationConfig: {
             maxOutputTokens: 500,
             temperature: 0.1,
