@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -130,15 +129,18 @@ app.get('/api/treatments', async (req, res) => {
 app.get('*', (req, res) => {
     res.send(`
         <html>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">
-                <h1>M22 AI Protocol Ready ✅</h1>
-                <p>Status: Online</p>
-                <p>Engine: <b>Gemini-1.5-Flash</b></p>
-                <div style="background: #f0f0f0; display: inline-block; padding: 20px; border-radius: 10px;">
-                    Config: ${process.env.TWILIO_PHONE_NUMBER ? "TWILIO_OK" : "TWILIO_MISSING"} | 
-                    IA: ${process.env.GEMINI_API_KEY ? "IA_OK" : "IA_MISSING"}
+            <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 50px; background: #f4f7f6; color: #333;">
+                <div style="background: white; max-width: 500px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <h1 style="color: #2c3e50; margin-bottom: 5px;">M22 Assistant ✅</h1>
+                    <p style="color: #27ae60; font-weight: bold; margin-bottom: 25px;">Engine: ONLINE | Model: Gemini-1.5-Flash</p>
+                    
+                    <div style="background: #fdfdfd; padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="margin: 5px 0;"><strong>Twilio:</strong> ${process.env.TWILIO_PHONE_NUMBER ? "🟢 Connected" : "🔴 Missing"}</p>
+                        <p style="margin: 5px 0;"><strong>Gemini IA:</strong> ${process.env.GEMINI_API_KEY ? "🟢 Connected" : "🔴 Missing"}</p>
+                    </div>
+                    
+                    <p style="color: #7f8c8d; font-size: 11px;">Deployment ID: ${new Date().toLocaleTimeString()} (UTC)</p>
                 </div>
-                <p style="color: #666; font-size: 12px;">Build ID: ${new Date().toISOString()}</p>
             </body>
         </html>
     `);
