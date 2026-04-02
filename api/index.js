@@ -24,7 +24,7 @@ if (missingEnv.length > 0) {
     console.error("[Boot] Critical: Missing Env Vars:", missingEnv.join(", "));
 }
 
-const { getParameters } = require('./ai-service');
+const { getParameters, listModels } = require('./ai-service');
 const { sendWhatsAppMessage } = require('./whatsapp-service');
 const { saveTreatment, updateOutcome, getRecentSuccessfulTreatments } = require('./database');
 
@@ -120,6 +120,14 @@ app.get('/api/treatments', async (req, res) => {
     try {
         const treatments = await getRecentSuccessfulTreatments();
         res.json(treatments);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+app.get('/api/models', async (req, res) => {
+    try {
+        const models = await listModels();
+        res.json(models);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

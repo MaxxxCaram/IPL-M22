@@ -51,6 +51,21 @@ const getParameters = async (diagnosis, context = []) => {
     }
 };
 
+const listModels = async () => {
+    const apiKey = (process.env.GEMINI_API_KEY || "").trim();
+    if (!apiKey) throw new Error("GEMINI_API_KEY is not configured.");
+    const genAI = new GoogleGenerativeAI(apiKey);
+    try {
+        // This is a diagnostic call
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const data = await response.json();
+        return data.models || data;
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
 module.exports = {
-    getParameters
+    getParameters,
+    listModels
 };
