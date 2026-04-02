@@ -46,21 +46,33 @@ const getParameters = async (diagnosis, context = []) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Using Gemini 2.5 PRO for maximum intelligence and strict formatting
+    // Using Gemini 2.0 Flash-Lite for a more permissive and faster response
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-pro",
+        model: "gemini-2.0-flash-lite",
         generationConfig: {
-            maxOutputTokens: 1000,
-            temperature: 0.1,
-        }
+            maxOutputTokens: 800,
+            temperature: 0.4, // Increased temperature for better flow
+        },
+        // Relax safety settings to prevent blocking of medical/laser content
+        safetySettings: [
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+        ]
     });
 
     try {
-        // Disabling historical context for now to avoid bad-imitation habits
-        const prompt = `${M22_SYSTEM_PROMPT}\n\nDiagnóstico: ${diagnosis}`;
+        const prompt = `${M22_SYSTEM_PROMPT}\n\nAnaliza este caso y dame el protocolo M22 completo: ${diagnosis}`;
 
         const result = await model.generateContent(prompt);
-        return result.response.text();
+        let text = result.response.text();
+        
+        // Fallback for empty responses
+        if (!text || text.length < 5) {
+            text = "IA: No pude generar el protocolo exacto. Por favor verifique el diagnóstico.";
+        }
+        return text;
     } catch (error) {
         console.error("Error with Gemini API:", error.message);
         throw new Error(`Error de IA: ${error.message}`);
