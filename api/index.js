@@ -9,7 +9,7 @@ if (process.env.TWILIO_ACCOUNT_SID) process.env.TWILIO_ACCOUNT_SID = process.env
 if (process.env.TWILIO_AUTH_TOKEN) process.env.TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN.trim();
 if (process.env.TWILIO_PHONE_NUMBER) process.env.TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER.trim();
 
-// Critical Check: Verify essential environment variables
+// Verify essential environment variables
 const checkEnv = () => {
     const missing = [];
     if (!process.env.GEMINI_API_KEY) missing.push('GEMINI_API_KEY');
@@ -18,6 +18,12 @@ const checkEnv = () => {
     if (!process.env.TWILIO_PHONE_NUMBER) missing.push('TWILIO_PHONE_NUMBER');
     return missing;
 };
+
+console.log("[Boot] Server initialization starting...");
+const missingEnv = checkEnv();
+if (missingEnv.length > 0) {
+    console.error("[Boot] Critical: Missing Env Vars:", missingEnv.join(", "));
+}
 
 const { getParameters } = require('./ai-service');
 const { sendWhatsAppMessage } = require('./whatsapp-service');
@@ -120,12 +126,22 @@ app.get('/api/treatments', async (req, res) => {
     }
 });
 
-// Start local server if not on Vercel
-if (!process.env.VERCEL) {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`Server running local on port ${PORT}`);
-    });
-}
+// Simple health check as default route
+app.get('*', (req, res) => {
+    res.send(`
+        <html>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">
+                <h1>M22 AI Protocol Ready ✅</h1>
+                <p>Status: Online</p>
+                <p>Engine: <b>Gemini-1.5-Flash</b></p>
+                <div style="background: #f0f0f0; display: inline-block; padding: 20px; border-radius: 10px;">
+                    Config: ${process.env.TWILIO_PHONE_NUMBER ? "TWILIO_OK" : "TWILIO_MISSING"} | 
+                    IA: ${process.env.GEMINI_API_KEY ? "IA_OK" : "IA_MISSING"}
+                </div>
+                <p style="color: #666; font-size: 12px;">Build ID: ${new Date().toISOString()}</p>
+            </body>
+        </html>
+    `);
+});
 
 module.exports = app;
