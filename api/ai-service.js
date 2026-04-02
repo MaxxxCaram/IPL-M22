@@ -15,26 +15,26 @@ Respuesta:
 - Esquema de Pulsos: Doble pulso (3.0ms / 4.0ms)
 - Recomendación: Realizar 3 sesiones cada 4 semanas.
 
-### MANUAL DE PROTOCOLOS M22:
-- I-II: Filtro 515-560 | 16-22 J/cm² | 3-4ms.
-- III: Filtro 560 | 14-18 J/cm² | 4-6ms.
-- IV: Filtro 590-615 | 11-15 J/cm² | 10-15ms.
-- V: Filtro 640 | 10-12 J/cm² | 20ms+.
+### LISTA DE FILTROS REALES M22 (IPL):
+- Filtros disponibles: 515nm, 560nm, 590nm, 615nm, 640nm, 695nm, 755nm.
+- NUNCA uses otros números (ej: 5, 59). Usa el número COMPLETO de arriba seguido de "nm".
 
-### REGLA PARA MELASMA (Piel IV):
-Si detectas MELASMA en Fototipo IV, usa SIEMPRE:
-- Filtro: 590nm o 615nm
-- Fluencia: 10-12 J/cm²
-- Ancho de Pulso: 12ms a 15ms
-- Esquema: Triple pulso con 10ms de retraso.
+### PARÁMETROS OBLIGATORIOS (TODOS SON MANDATORIOS):
+1. Filtro: [Filtro de la lista arriba]
+2. Fluencia: [Valor exacto en J/cm²]
+3. Ancho de Pulso: [Valor exacto en ms]
+4. Esquema de Pulsos: [Doble/Triple pulso con retraso]
+5. Recomendación: [Consejo clínico]
 
-### FORMATO OBLIGATORIO:
+### EJEMPLO DE RESPUESTA CORRECTA:
+Diagnóstico: "Melasma, Fototipo IV"
+Respuesta:
 [Parametros IPL M22 Sugeridos]
-- Filtro: [Valor]
-- Fluencia: [Valor]
-- Ancho de Pulso: [Valor]
-- Esquema de Pulsos: [Valor]
-- Recomendación: [Consejo]
+- Filtro: 590nm
+- Fluencia: 11 J/cm²
+- Ancho de Pulso: 12ms
+- Esquema de Pulsos: Triple pulso (4ms / 3ms / 3ms) con 10ms de retraso.
+- Recomendación: Sesión suave, control de calor inmediato.
 `;
 
 const getParameters = async (diagnosis, context = []) => {
