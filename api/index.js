@@ -24,6 +24,13 @@ if (missingEnv.length > 0) {
     console.error("[Boot] Critical: Missing Env Vars:", missingEnv.join(", "));
 }
 
+const getAIKeyHint = () => {
+    const key = (process.env.GEMINI_API_KEY || "").trim();
+    if (!key) return "NOT_SET";
+    if (key.length < 10) return "TOO_SHORT";
+    return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
+};
+
 const { getParameters, listModels } = require('./ai-service');
 const { sendWhatsAppMessage } = require('./whatsapp-service');
 const { saveTreatment, updateOutcome, getRecentSuccessfulTreatments } = require('./database');
@@ -145,6 +152,7 @@ app.get('*', (req, res) => {
                     <div style="background: #fdfdfd; padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 20px;">
                         <p style="margin: 5px 0;"><strong>Twilio:</strong> ${process.env.TWILIO_PHONE_NUMBER ? "🟢 Connected" : "🔴 Missing"}</p>
                         <p style="margin: 5px 0;"><strong>Gemini IA:</strong> ${process.env.GEMINI_API_KEY ? "🟢 Connected" : "🔴 Missing"}</p>
+                        <p style="margin: 5px 0; font-size: 10px; color: #888;">Key Hint: <code>${getAIKeyHint()}</code></p>
                     </div>
                     
                     <p style="color: #7f8c8d; font-size: 11px;">Deployment ID: ${new Date().toLocaleTimeString()} (UTC)</p>

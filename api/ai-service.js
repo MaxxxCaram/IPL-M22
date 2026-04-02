@@ -21,9 +21,11 @@ Fitzpatrick V-VI: 640-695nm | 8-12 J/cm² | 20ms+.
 `;
 
 const getParameters = async (diagnosis, context = []) => {
-    // Sanitize Key
-    const apiKey = (process.env.GEMINI_API_KEY || "").trim();
-    if (!apiKey) throw new Error("GEMINI_API_KEY is not configured.");
+    // Sanitize Key (remove quotes, spaces, and backticks if they accidentally crept in)
+    let apiKey = (process.env.GEMINI_API_KEY || "").trim();
+    apiKey = apiKey.replace(/['"`]/g, ""); // Remove accidental quotes
+    
+    if (!apiKey || apiKey.length < 5) throw new Error("GEMINI_API_KEY is invalid or not configured.");
 
     const genAI = new GoogleGenerativeAI(apiKey);
     
