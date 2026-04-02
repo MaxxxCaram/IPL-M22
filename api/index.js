@@ -45,12 +45,13 @@ app.use((req, res, next) => {
 
 // Diagnostic GET for testing in browser (explicit paths)
 app.get(['/', '/api/health', '/api/whatsapp', '/webhook/whatsapp'], (req, res) => {
-    res.send("<h1>M22 Webhook Ready! ✅</h1><p>Vercel está enviando bien los datos a Express.</p>");
+    res.send("<h1>M22 Webhook Ready! ✅</h1><p>Versión: <b>Gemini-1.5-Flash-Update</b></p><p>Vercel está enviando bien los datos a Express.</p>");
 });
 
 // Webhook handler logic - SYNC FOR VERCEL COMPATIBILITY
 const whatsappHandler = async (req, res) => {
     console.log("--- WEBHOOK HIT (POST) ---");
+    console.log("Body Received:", JSON.stringify(req.body));
     
     const { From, Body } = req.body;
     const body = Body ? Body.toLowerCase() : "";
