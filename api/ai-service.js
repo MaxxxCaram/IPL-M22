@@ -2,44 +2,38 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
 const M22_SYSTEM_PROMPT = `
-Eres el Asistente Experto en IPL Lumenis M22 y clones de alta gama. Tu misión es proporcionar protocolos médicos precisos.
+Eres el Asistente Experto en IPL Lumenis M22 y clones. Tu mision es dar protocolos medicos completos.
 
-### SET DE FILTROS M22 (IPL):
-1. **Acne:** Filtro dual (400-600 & 800-1200nm). Uso: Acné inflamatorio activo.
-2. **Vascular:** Filtro específico (515-590nm). Uso: Telangiectasias, Rosácea, puntos rubí.
-3. **515nm:** Uso: Lentigos solares, lesiones pigmentadas epidérmicas (I-III).
-4. **560nm:** Uso: Fotorejuvenecimiento general, lesiones vasculares superficiales.
-5. **590nm:** Uso: Lesiones vasculares profundas, fototipos III-IV.
-6. **615nm:** Uso: Pieles oscuras, lesiones vasculares en piernas, Melasma.
-7. **640nm:** Uso: Depilación láser (LHR), fototipos oscuros (IV-V).
-8. **695nm:** Uso: Depilación láser profunda, fototipo V.
+### FILTROS M22:
+1. Acne: Filtro dual de 400 a 600 nm y de 800 a 1200 nm. Uso para Acne activo.
+2. Vascular: Filtro de 515 a 590 nm. Uso para Rosacea y Telangiectasias.
+3. 515nm: Uso para manchas solares y lesiones pigmentadas claras.
+4. 560nm: Uso para rejuvenecimiento y manchas comunes.
+5. 590nm: Uso para manchas profundas y pieles fototipo III-IV.
+6. 615nm: Uso para melasma y pieles oscuras.
+7. 640nm: Uso para depilacion en pieles oscuras.
+8. 695nm: Uso para depilacion profunda.
 
-### REGLAS DE ORO PARA CLONES CHINOS:
-- Los clones chinos suelen ser menos potentes pero más inestables térmicamente.
-- **Seguridad:** En fototipos IV+, usa siempre fluencias bajas (10-14 J/cm²) y filtros largos (590+).
-- **Melasma:** Nunca uses filtros cortos (515/560) en melasma; usa 590nm o 615nm con pulsos triples y tiempos de retraso largos (20-40ms).
-- **Acné:** Usa el filtro de Acné solo en pacientes con lesiones inflamatorias. Fluencia baja (8-12 J/cm²).
+### REGLAS PARA CLONES:
+- Prioriza seguridad. Fototipos IV requieren fluencia baja (10-12 J/cm2).
+- Melasma: Usa filtro 590nm o 615nm con tres pulsos y descansos largos.
 
-### FORMATO DE SALIDA OBLIGATORIO:
-[Parametros IPL M22 Sugeridos]
-- Filtro Sugerido: [Nombre o longitud de onda]
-- Fluencia: [Valor en J/cm²]
-- Configuración de Pulso: [Simple/Doble/Triple]
-- Ancho de Pulso: [Valor en ms]
-- Tiempo de Retraso: [Valor en ms entre pulsos]
-- Recomendación Clínica: [Breve y técnica]
+### FORMATO DE RESPUESTA:
+PARAMETROS M22 SUGERIDOS:
+Filtro: [Especificar filtro]
+Fluencia: [Valor en J/cm2]
+Configuracion: [Pulsos y retrasos]
+Ancho de Pulso: [Valor en ms]
+Recomendacion: [Consejo tecnico]
 `;
 
 const getParameters = async (diagnosis, globalContext = [], patientHistory = []) => {
-    // Sanitize Key (remove quotes, spaces, and backticks if they accidentally crept in)
+    // Sanitize Key
     let apiKey = (process.env.GEMINI_API_KEY || "").trim();
-    apiKey = apiKey.replace(/['"`]/g, ""); // Remove accidental quotes
-
-    if (!apiKey || apiKey.length < 5) throw new Error("GEMINI_API_KEY is invalid or not configured.");
+    apiKey = apiKey.replace(/['"`]/g, "");
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Using Gemini 2.5 PRO for maximum precision and intelligence
     const model = genAI.getGenerativeModel({
         model: "gemini-2.5-pro",
         generationConfig: {
@@ -55,24 +49,20 @@ const getParameters = async (diagnosis, globalContext = [], patientHistory = [])
     });
 
     try {
-        const globalRef = (globalContext && globalContext.length > 0)
-            ? "\n### ÉXITOS RECIENTES (REFERENCIA):\n" + globalContext.map(c => `- ${c.diagnosis} -> ${c.recommended_parameters}`).join("\n")
-            : "";
-        
-        const patientRef = (patientHistory && patientHistory.length > 0)
-            ? "\n### HISTORIAL DEL PACIENTE (CRÍTICO):\n" + patientHistory.map(h => `- ${h.created_at.split('T')[0]}: ${h.diagnosis} -> ${h.recommended_parameters} (${h.outcome || 'pendiente'})`).join("\n")
-            : "";
+        const prompt = `${M22_SYSTEM_PROMPT}\n\nDiagnostico: ${diagnosis}\nGenera el protocolo completo ahora:`;
 
-        const prompt = `${M22_SYSTEM_PROMPT}${globalRef}${patientRef}\n\n### CONSULTA ACTUAL:\nAnaliza este caso y genera el protocolo M22 completo y detallado: ${diagnosis}`;
-
-        console.log(`[AI] Calling Gemini 2.5 Pro for: ${diagnosis}`);
+        console.log(`[AI] Requesting for: ${diagnosis}`);
         const result = await model.generateContent(prompt);
-        let text = result.response.text();
         
-        console.log(`[AI] Generated response length: ${text.length}`);
+        // Log finish reason for debugging
+        const candidate = result.response.candidates[0];
+        console.log(`[AI] Finish Reason: ${candidate.finishReason}`);
+        
+        let text = result.response.text();
+        console.log(`[AI] Text length: ${text.length}`);
 
         if (!text || text.length < 10) {
-            text = "IA: No se pudo generar el protocolo completo. Inténtelo de nuevo con más detalles.";
+            text = "IA: Error de respuesta corta. Reintente con mas detalles.";
         }
         return text;
     } catch (error) {
