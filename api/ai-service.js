@@ -39,14 +39,13 @@ const getParameters = async (diagnosis, globalContext = [], patientHistory = [])
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Using Gemini 2.5 Flash (Modern stable version)
+    // Using Gemini 2.5 PRO for maximum precision and intelligence
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.5-pro",
         generationConfig: {
-            maxOutputTokens: 800,
-            temperature: 0.4, // Increased temperature for better flow
+            maxOutputTokens: 1024,
+            temperature: 0.1, 
         },
-        // Relax safety settings to prevent blocking of medical/laser content
         safetySettings: [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
             { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -64,14 +63,16 @@ const getParameters = async (diagnosis, globalContext = [], patientHistory = [])
             ? "\n### HISTORIAL DEL PACIENTE (CRÍTICO):\n" + patientHistory.map(h => `- ${h.created_at.split('T')[0]}: ${h.diagnosis} -> ${h.recommended_parameters} (${h.outcome || 'pendiente'})`).join("\n")
             : "";
 
-        const prompt = `${M22_SYSTEM_PROMPT}${globalRef}${patientRef}\n\n### CONSULTA ACTUAL:\nAnaliza este caso y dame el protocolo M22 completo: ${diagnosis}`;
+        const prompt = `${M22_SYSTEM_PROMPT}${globalRef}${patientRef}\n\n### CONSULTA ACTUAL:\nAnaliza este caso y genera el protocolo M22 completo y detallado: ${diagnosis}`;
 
+        console.log(`[AI] Calling Gemini 2.5 Pro for: ${diagnosis}`);
         const result = await model.generateContent(prompt);
         let text = result.response.text();
         
-        // Fallback for empty responses
-        if (!text || text.length < 5) {
-            text = "IA: No pude generar el protocolo exacto. Por favor verifique el diagnóstico.";
+        console.log(`[AI] Generated response length: ${text.length}`);
+
+        if (!text || text.length < 10) {
+            text = "IA: No se pudo generar el protocolo completo. Inténtelo de nuevo con más detalles.";
         }
         return text;
     } catch (error) {
