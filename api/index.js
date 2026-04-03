@@ -26,7 +26,7 @@ if (missingEnv.length > 0) {
 
 const { getParameters } = require('./ai-service');
 const { sendWhatsAppMessage } = require('./whatsapp-service');
-const { saveTreatment, updateOutcome, getRecentSuccessfulTreatments } = require('./database');
+const { saveTreatment, updateOutcome, getRecentSuccessfulTreatments, getPatientHistory } = require('./database');
 
 const app = express();
 app.use(cors());
@@ -79,11 +79,16 @@ const whatsappHandler = async (req, res) => {
                 await sendWhatsAppMessage(From.replace('whatsapp:', ''), 'Por favor envía el resultado en formato: "Resultado [ID]: [exito/fallo] [comentarios]"');
             }
         } else {
-            console.log(`Analyzing: ${body}`);
-            const context = await getRecentSuccessfulTreatments();
+            console.log(`Analyzing for ${From}: ${body}`);
+            
+            // Get both global context (recent successes) and specific patient history
+            const [globalContext, patientHistory] = await Promise.all([
+                getRecentSuccessfulTreatments(),
+                getPatientHistory(From)
+            ]);
 
-            // We AWAIT here to ensure Gemini finishes BEFORE Vercel suspends the function
-            const response = await getParameters(body, context);
+            // Pass combined context to AI
+            const response = await getParameters(body, globalContext, patientHistory);
 
             console.log("Saving treatment diagnosis...");
             const treatmentId = await saveTreatment({
