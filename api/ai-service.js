@@ -49,20 +49,26 @@ const getParameters = async (diagnosis, globalContext = [], patientHistory = [])
     });
 
     try {
-        const prompt = `${M22_SYSTEM_PROMPT}\n\nDiagnostico: ${diagnosis}\nGenera el protocolo completo ahora:`;
-
-        console.log(`[AI] Requesting for: ${diagnosis}`);
+        const prompt = `${M22_SYSTEM_PROMPT}\n\nDiagnostico: ${diagnosis}\nProtocolo Completo:`;
+        
+        console.log(`[AI] Calling 2.5 Pro: ${diagnosis}`);
         const result = await model.generateContent(prompt);
         
-        // Log finish reason for debugging
-        const candidate = result.response.candidates[0];
-        console.log(`[AI] Finish Reason: ${candidate.finishReason}`);
-        
-        let text = result.response.text();
-        console.log(`[AI] Text length: ${text.length}`);
+        const candidate = result.response.candidates ? result.response.candidates[0] : null;
+        let text = "";
+
+        // Check for safety block or empty content
+        if (!candidate || candidate.finishReason === 'SAFETY' || !candidate.content || candidate.content.parts.length === 0) {
+            console.warn(`[AI] Pro blocked by ${candidate ? candidate.finishReason : 'EMPTY'}. Trying Flash...`);
+            const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const fallbackResult = await fallbackModel.generateContent(prompt);
+            text = fallbackResult.response.text();
+        } else {
+            text = result.response.text();
+        }
 
         if (!text || text.length < 10) {
-            text = "IA: Error de respuesta corta. Reintente con mas detalles.";
+            text = `IA: No pude generar el protocolo (Motivo: ${candidate ? candidate.finishReason : 'SAFETY'}). Por favor verifique el fototipo.`;
         }
         return text;
     } catch (error) {
