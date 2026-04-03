@@ -35,9 +35,9 @@ const getParameters = async (diagnosis, globalContext = [], patientHistory = [])
     const genAI = new GoogleGenerativeAI(apiKey);
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-pro",
+        model: "gemini-1.5-pro",
         generationConfig: {
-            maxOutputTokens: 1024,
+            maxOutputTokens: 2048,
             temperature: 0.1, 
         },
         safetySettings: [
