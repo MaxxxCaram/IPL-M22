@@ -51,24 +51,31 @@ const getParameters = async (diagnosis, globalContext = [], patientHistory = [])
     try {
         const prompt = `${M22_SYSTEM_PROMPT}\n\nDiagnostico: ${diagnosis}\nProtocolo Completo:`;
         
-        console.log(`[AI] Calling 2.5 Pro: ${diagnosis}`);
+        console.log(`[AI] Calling 2.5 Pro for: ${diagnosis}`);
         const result = await model.generateContent(prompt);
         
-        const candidate = result.response.candidates ? result.response.candidates[0] : null;
+        const candidate = result?.response?.candidates?.[0];
         let text = "";
 
-        // Check for safety block or empty content
-        if (!candidate || candidate.finishReason === 'SAFETY' || !candidate.content || candidate.content.parts.length === 0) {
-            console.warn(`[AI] Pro blocked by ${candidate ? candidate.finishReason : 'EMPTY'}. Trying Flash...`);
-            const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const fallbackResult = await fallbackModel.generateContent(prompt);
-            text = fallbackResult.response.text();
+        // Detectar bloqueo o respuesta vacia
+        const isBlocked = !candidate || candidate.finishReason === 'SAFETY' || !candidate?.content?.parts?.[0]?.text;
+
+        if (isBlocked) {
+            console.warn(`[AI] Primary Blocked (${candidate?.finishReason}). Trying Flash...`);
+            try {
+                const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const fallbackResult = await fallbackModel.generateContent(prompt);
+                text = fallbackResult?.response?.text() || "";
+            } catch (fallbackError) {
+                console.error("[AI] Fallback also failed:", fallbackError.message);
+            }
         } else {
             text = result.response.text();
         }
 
         if (!text || text.length < 10) {
-            text = `IA: No pude generar el protocolo (Motivo: ${candidate ? candidate.finishReason : 'SAFETY'}). Por favor verifique el fototipo.`;
+            const reason = candidate?.finishReason || "SAFETY";
+            text = `IA: No fue posible generar el protocolo (Razon: ${reason}). Por favor intenta simplificar los terminos del diagnostico.`;
         }
         return text;
     } catch (error) {
